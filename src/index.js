@@ -13,31 +13,36 @@ const CONFIG = {
 };
 
 // ── RSS SOURCES ───────────────────────────────────────────────────────────
-// Targeted searches for buying signals in HR/SI/AT
 const SOURCES = [
-  // Croatia business news
-  { url: 'https://news.google.com/rss/search?q=marketing+agencija+hrvatska+nova&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
-  { url: 'https://news.google.com/rss/search?q=event+management+croatia+new&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
-  { url: 'https://news.google.com/rss/search?q=otvaranje+tvrtka+hrvatska+2025&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
-  { url: 'https://news.google.com/rss/search?q=investicija+hrvatska+tvrtka+širenje&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
-  { url: 'https://news.google.com/rss/search?q=hotel+resort+otvaranje+hrvatska&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
-  { url: 'https://news.google.com/rss/search?q=konferencija+event+organizacija+hrvatska&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
+  // ── Croatia — Google News broad business searches
+  { url: 'https://news.google.com/rss/search?q=hrvatska+tvrtka+otvaranje+rast&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=hrvatska+investicija+novi+projekt&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=zagreb+nova+tvrtka+poslovni&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=croatia+new+business+opening+2026&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=croatia+marketing+event+company&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=croatia+hotel+resort+opening&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=croatia+startup+funding+investment&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
+  { url: 'https://news.google.com/rss/search?q=croatia+conference+festival+event+2026&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
 
-  // Slovenia business news
-  { url: 'https://news.google.com/rss/search?q=marketing+agencija+slovenija+nova&hl=sl&gl=SI&ceid=SI:sl', region: 'SI' },
-  { url: 'https://news.google.com/rss/search?q=event+management+slovenia+new&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
-  { url: 'https://news.google.com/rss/search?q=nova+podjetja+investicija+slovenija&hl=sl&gl=SI&ceid=SI:sl', region: 'SI' },
-  { url: 'https://news.google.com/rss/search?q=odprtje+hotel+venue+slovenija&hl=sl&gl=SI&ceid=SI:sl', region: 'SI' },
+  // ── Slovenia — Google News
+  { url: 'https://news.google.com/rss/search?q=slovenija+nova+podjetja+investicija&hl=sl&gl=SI&ceid=SI:sl', region: 'SI' },
+  { url: 'https://news.google.com/rss/search?q=slovenia+new+business+company+opening&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
+  { url: 'https://news.google.com/rss/search?q=slovenia+startup+marketing+event&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
+  { url: 'https://news.google.com/rss/search?q=ljubljana+hotel+venue+opening+2026&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
+  { url: 'https://news.google.com/rss/search?q=slovenia+investment+expansion+growth&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
 
-  // Austria business news
-  { url: 'https://news.google.com/rss/search?q=marketing+agentur+österreich+neu&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
-  { url: 'https://news.google.com/rss/search?q=event+management+austria+new+company&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
-  { url: 'https://news.google.com/rss/search?q=neue+firma+expansion+österreich+marketing&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
-  { url: 'https://news.google.com/rss/search?q=hotel+eröffnung+wien+graz&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
+  // ── Austria — Google News
+  { url: 'https://news.google.com/rss/search?q=österreich+neue+firma+eröffnung+2026&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
+  { url: 'https://news.google.com/rss/search?q=wien+graz+unternehmen+expansion+marketing&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
+  { url: 'https://news.google.com/rss/search?q=austria+new+company+startup+investment&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
+  { url: 'https://news.google.com/rss/search?q=austria+event+conference+venue+opening&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
+  { url: 'https://news.google.com/rss/search?q=vienna+marketing+agency+brand+launch&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
 
-  // Regional business portals
+  // ── Regional portals (Croatian business press)
   { url: 'https://www.poslovni.hr/feed/', region: 'HR' },
   { url: 'https://lider.media/feed/', region: 'HR' },
+  { url: 'https://www.tportal.hr/biznis/rss', region: 'HR' },
+  { url: 'https://www.vecernji.hr/biznis/rss', region: 'HR' },
 ];
 
 const REGION_FLAG = { HR: '🇭🇷', SI: '🇸🇮', AT: '🇦🇹' };
@@ -45,7 +50,7 @@ const REGION_FLAG = { HR: '🇭🇷', SI: '🇸🇮', AT: '🇦🇹' };
 // ── FETCH ALL FEEDS ───────────────────────────────────────────────────────
 async function fetchAllFeeds() {
   const allItems = [];
-  const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  const threeDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
 
   for (const source of SOURCES) {
     try {
@@ -93,43 +98,46 @@ async function analyzeWithClaude(items) {
       `[${i}] ${REGION_FLAG[item.region]} ${item.region}\nTitle: ${item.title}\nSummary: ${item.summary.slice(0, 300)}\nURL: ${item.link}`
     ).join('\n\n---\n\n');
 
-    const prompt = `You are a lead intelligence analyst for kajgod.agency, a marketing and event management agency operating in Croatia, Slovenia and Austria.
+    const prompt = `You are a lead intelligence analyst for kajgod.agency, a marketing and event management agency in Croatia, Slovenia and Austria.
 
-Analyze these news items and identify ONLY genuine business opportunities where kajgod.agency could realistically win new work. 
+Analyze these news items and identify business opportunities where kajgod.agency could realistically offer their services.
 
-STRONG signals to flag:
-- Company opening new office, branch, venue, hotel, restaurant, store in HR/SI/AT
-- Company receiving investment or funding and likely expanding
-- Company announcing a product launch, rebrand, or major campaign
-- New event, conference, trade fair, or festival being organized
-- Company hiring for marketing/events roles (they need help but don't have staff yet)
-- Company that recently lost their marketing agency or is looking for one
-- Startup or scale-up growing quickly in the region
+Flag ANY of these signals — be generous, not strict:
+- Company opening new office, branch, hotel, restaurant, venue, store or facility in HR/SI/AT
+- Company receiving funding, investment or announcing growth/expansion
+- Company launching a new product, brand, or entering a new market
+- New event, conference, trade fair, festival or exhibition being organized
+- Company hiring for marketing, communications, PR or events roles (means they need help)
+- Startup or growing company in the region that likely needs marketing support
+- Business that recently rebranded or is undergoing major change
+- Any company in tourism, hospitality, retail, tech or food/beverage expanding in the region
 
-IGNORE:
-- Generic industry news with no specific company opportunity
-- Political news
-- Companies already with established large marketing teams
-- News outside HR/SI/AT region
-- Anything more than 3 days old
+Be INCLUSIVE — if there is any reasonable chance kajgod.agency could approach this company for work, include it. It is better to include a borderline lead than miss a real one.
 
-For each genuine opportunity, respond in this EXACT JSON format (array of objects):
+Only skip:
+- Pure politics with no business angle
+- Crime or accident news
+- Articles clearly outside HR/SI/AT with no regional connection
+- Completely vague articles with no identifiable company
+
+For each opportunity respond in this EXACT JSON format:
 {
   "index": <number from the list>,
   "company": "<company name>",
   "opportunity": "<one sentence: what is the specific opportunity>",
   "why_kajgod": "<one sentence: why this is relevant for a marketing/event agency>",
   "urgency": "high|medium|low",
-  "linkedin_role": "<job title to search for on LinkedIn to find the right contact, e.g. 'CEO', 'Marketing Director', 'Head of Events'>",
-  "linkedin_company": "<company name to search on LinkedIn>",
+  "linkedin_role": "<job title to find on LinkedIn, e.g. 'CEO', 'Marketing Director', 'Head of Events', 'Founder'>",
+  "linkedin_company": "<company name for LinkedIn search>",
   "region": "<HR|SI|AT>"
 }
 
-Return ONLY a valid JSON array. If no genuine opportunities found, return [].
+Return ONLY a valid JSON array. If truly nothing is relevant, return [].
 Do not include any text outside the JSON.
 
 NEWS ITEMS:
 ${itemsList}`;
+
 
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -224,7 +232,7 @@ function buildEmail(leads, fetchedCount) {
 
   <!-- Header -->
   <div style="background:#0A0A0A;border-radius:16px;padding:32px;margin-bottom:24px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;right:0;width:0;height:0;border-left:80px solid transparent;border-top:80px solid #FFE600;opacity:0.8"></div>
+    <div style="position:absolute;top:0;right:0;width:0;height:0;border-left:80px solid transparent;border-top:80px solid #FFE600"></div>
     <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:white;letter-spacing:-1px;margin-bottom:4px">kajgod. <span style="color:#FFE600">Leads</span></div>
     <div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:2px">Intelligence Digest · ${now}</div>
     <div style="display:flex;gap:20px;margin-top:20px">
