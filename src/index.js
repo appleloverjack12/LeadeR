@@ -148,14 +148,19 @@ ${itemsList}`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-haiku-4-5-20251001',
           max_tokens: 2000,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
 
       const data = await response.json();
+      if (data.error) {
+        console.log(`⚠ Claude API error: ${JSON.stringify(data.error)}`);
+        continue;
+      }
       const text = data.content?.[0]?.text || '[]';
+      console.log(`   Claude response preview: ${text.slice(0, 120)}`);
       const clean = text.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(clean);
 
