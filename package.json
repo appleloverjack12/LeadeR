@@ -1,0 +1,19 @@
+{
+  "name": "kajgod-leads",
+  "version": "1.0.0",
+  "description": "Lead intelligence digest for kajgod.agency — HR/SI/AT marketing & event opportunities",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node src/index.js"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^6.9.9",
+    "rss-parser": "^3.13.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

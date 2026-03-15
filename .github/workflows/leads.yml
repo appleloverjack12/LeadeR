@@ -1,0 +1,33 @@
+name: kajgod. Lead Intelligence
+
+on:
+  schedule:
+    # Runs every 3 days at 07:00 UTC (9:00 CET) — Monday, Thursday, Sunday
+    - cron: '0 7 */3 * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  run-leads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lead intelligence scan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_USER:        ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_TO:          ${{ secrets.EMAIL_TO }}
+        run: npm start
