@@ -4,7 +4,6 @@ import fetch from 'node-fetch';
 
 const parser = new Parser({ timeout: 10000 });
 
-// ── CONFIG ────────────────────────────────────────────────────────────────
 const CONFIG = {
   anthropicKey: process.env.ANTHROPIC_API_KEY,
   gmailUser:    process.env.GMAIL_USER,
@@ -12,10 +11,7 @@ const CONFIG = {
   emailTo:      process.env.EMAIL_TO || process.env.GMAIL_USER,
 };
 
-// ── RSS SOURCES ───────────────────────────────────────────────────────────
-// Focused on industrial, automotive, manufacturing and tech in HR/SI/AT
 const SOURCES = [
-  // ── Croatia — industrial & tech
   { url: 'https://news.google.com/rss/search?q=hrvatska+industrija+tvornica+investicija&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
   { url: 'https://news.google.com/rss/search?q=hrvatska+tehnologija+startup+rast&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
   { url: 'https://news.google.com/rss/search?q=croatia+manufacturing+factory+investment+2026&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
@@ -24,24 +20,18 @@ const SOURCES = [
   { url: 'https://news.google.com/rss/search?q=croatia+engineering+firm+new+contract&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
   { url: 'https://news.google.com/rss/search?q=hrvatska+strojarstvo+novi+pogon+projekt&hl=hr&gl=HR&ceid=HR:hr', region: 'HR' },
   { url: 'https://news.google.com/rss/search?q=croatia+B2B+trade+fair+exhibition+2026&hl=en&gl=HR&ceid=HR:en', region: 'HR' },
-
-  // ── Slovenia — industrial & tech
   { url: 'https://news.google.com/rss/search?q=slovenija+industrija+tovarna+investicija&hl=sl&gl=SI&ceid=SI:sl', region: 'SI' },
   { url: 'https://news.google.com/rss/search?q=slovenia+manufacturing+automotive+expansion&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
   { url: 'https://news.google.com/rss/search?q=slovenia+tech+startup+funding+growth&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
   { url: 'https://news.google.com/rss/search?q=slovenija+tehnologija+podjetje+rast&hl=sl&gl=SI&ceid=SI:sl', region: 'SI' },
   { url: 'https://news.google.com/rss/search?q=slovenia+engineering+industry+new+facility&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
   { url: 'https://news.google.com/rss/search?q=slovenia+B2B+trade+show+industry+2026&hl=en&gl=SI&ceid=SI:en', region: 'SI' },
-
-  // ── Austria — industrial & tech
   { url: 'https://news.google.com/rss/search?q=österreich+industrie+fabrik+investition+2026&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
   { url: 'https://news.google.com/rss/search?q=österreich+automotive+zulieferer+expansion&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
   { url: 'https://news.google.com/rss/search?q=austria+manufacturing+tech+company+growth&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
   { url: 'https://news.google.com/rss/search?q=austria+engineering+startup+funding&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
   { url: 'https://news.google.com/rss/search?q=wien+graz+industrie+messe+fachmesse+2026&hl=de&gl=AT&ceid=AT:de', region: 'AT' },
   { url: 'https://news.google.com/rss/search?q=austria+B2B+industrial+trade+fair+2026&hl=en&gl=AT&ceid=AT:en', region: 'AT' },
-
-  // ── Regional business portals
   { url: 'https://www.poslovni.hr/feed/', region: 'HR' },
   { url: 'https://lider.media/feed/', region: 'HR' },
   { url: 'https://www.tportal.hr/biznis/rss', region: 'HR' },
@@ -50,7 +40,15 @@ const SOURCES = [
 
 const REGION_FLAG = { HR: '🇭🇷', SI: '🇸🇮', AT: '🇦🇹' };
 
-// ── FETCH ALL FEEDS ───────────────────────────────────────────────────────
+// ── ONLY KEEP DIRECT ARTICLE LINKS ────────────────────────────────────────
+function isDirectLink(url) {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    return !u.hostname.includes('google.com');
+  } catch { return false; }
+}
+
 async function fetchAllFeeds() {
   const allItems = [];
   const fiveDaysAgo = Date.now() - 5 * 24 * 60 * 60 * 1000;
@@ -64,7 +62,7 @@ async function fetchAllFeeds() {
         allItems.push({
           title:   item.title || '',
           summary: item.contentSnippet || item.content || '',
-          link:    item.link || '',
+          link:    isDirectLink(item.link) ? item.link : '',
           pubDate: item.pubDate || '',
           region:  source.region,
         });
@@ -74,7 +72,6 @@ async function fetchAllFeeds() {
     }
   }
 
-  // Deduplicate by title
   const seen = new Set();
   return allItems.filter(item => {
     const key = item.title.toLowerCase().slice(0, 60);
@@ -84,16 +81,12 @@ async function fetchAllFeeds() {
   });
 }
 
-// ── CLAUDE ANALYSIS ───────────────────────────────────────────────────────
 async function analyzeWithClaude(items) {
   if (!items.length) return [];
 
   const batches = [];
-  for (let i = 0; i < items.length; i += 20) {
-    batches.push(items.slice(i, i + 20));
-  }
-
-  const leads = [];
+  for (let i = 0; i < items.length; i += 20) batches.push(items.slice(i, i + 20));
+  const allLeads = [];
 
   for (const batch of batches) {
     const itemsList = batch.map((item, i) =>
@@ -128,8 +121,10 @@ FLAG these buying signals — be generous:
 - Startup in industrial tech, cleantech, medtech or enterprise software growing in the region
 - Any engineering or manufacturing firm that won a major contract or partnership
 
+IMPORTANT: If the same company appears in multiple articles, include it ONLY ONCE using the most relevant article.
+
 SKIP:
-- Pure consumer lifestyle brands (fashion, food, entertainment, tourism) — unless they have a strong B2B or industrial angle
+- Pure consumer lifestyle brands (fashion, food, entertainment, tourism)
 - Political news with no business opportunity
 - Crime, accidents, sports
 - Vague articles with no identifiable company name
@@ -141,10 +136,10 @@ For each opportunity respond in this EXACT JSON format:
   "opportunity": "<one sentence: the specific business trigger>",
   "why_kajgod": "<one sentence: how kajgod.agency can specifically help this company>",
   "urgency": "high|medium|low",
-  "linkedin_role": "<best job title to contact, e.g. 'CEO', 'Marketing Manager', 'Head of Sales', 'Communications Director', 'Founder'>",
+  "linkedin_role": "<best job title to contact>",
   "linkedin_company": "<company name for LinkedIn search>",
   "region": "<HR|SI|AT>",
-  "sector": "<one word: Industrial|Automotive|Tech|Engineering|Energy|Logistics|Other>"
+  "sector": "<Industrial|Automotive|Tech|Engineering|Energy|Logistics|Other>"
 }
 
 Return ONLY a valid JSON array. If nothing fits, return [].
@@ -156,50 +151,38 @@ ${itemsList}`;
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CONFIG.anthropicKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 2000,
-          messages: [{ role: 'user', content: prompt }],
-        }),
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CONFIG.anthropicKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] }),
       });
-
       const data = await response.json();
-      if (data.error) {
-        console.log(`⚠ Claude API error: ${JSON.stringify(data.error)}`);
-        continue;
-      }
+      if (data.error) { console.log(`⚠ Claude API error: ${JSON.stringify(data.error)}`); continue; }
       const text = data.content?.[0]?.text || '[]';
-      console.log(`   Claude response preview: ${text.slice(0, 120)}`);
-      const clean = text.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
-
+      console.log(`   Claude preview: ${text.slice(0, 120)}`);
+      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
       for (const lead of parsed) {
         const original = batch[lead.index];
-        if (original) {
-          leads.push({ ...lead, title: original.title, link: original.link, pubDate: original.pubDate });
-        }
+        if (original) allLeads.push({ ...lead, title: original.title, link: original.link, pubDate: original.pubDate });
       }
-    } catch (e) {
-      console.log(`⚠ Claude batch failed: ${e.message}`);
-    }
+    } catch (e) { console.log(`⚠ Claude batch failed: ${e.message}`); }
   }
 
+  // Deduplicate by company name across batches
+  const seenCompanies = new Set();
+  const uniqueLeads = allLeads.filter(l => {
+    const key = l.company.toLowerCase().trim();
+    if (seenCompanies.has(key)) return false;
+    seenCompanies.add(key);
+    return true;
+  });
+
   const urgencyOrder = { high: 0, medium: 1, low: 2 };
-  return leads.sort((a, b) => (urgencyOrder[a.urgency] || 1) - (urgencyOrder[b.urgency] || 1));
+  return uniqueLeads.sort((a, b) => (urgencyOrder[a.urgency] || 1) - (urgencyOrder[b.urgency] || 1));
 }
 
-// ── LINKEDIN URL ──────────────────────────────────────────────────────────
 function linkedInSearchURL(company, role) {
-  const q = encodeURIComponent(`${role} ${company}`);
-  return `https://www.linkedin.com/search/results/people/?keywords=${q}&origin=GLOBAL_SEARCH_HEADER`;
+  return `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(`${role} ${company}`)}&origin=GLOBAL_SEARCH_HEADER`;
 }
 
-// ── SECTOR COLORS ─────────────────────────────────────────────────────────
 const SECTOR_COLOR = {
   Industrial:  '#FF6B2B',
   Automotive:  '#1877F2',
@@ -210,152 +193,112 @@ const SECTOR_COLOR = {
   Other:       '#888',
 };
 
-// ── BUILD EMAIL ───────────────────────────────────────────────────────────
 function buildEmail(leads, fetchedCount) {
   const now = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
-  const urgencyColor = { high: '#FF3B5C', medium: '#FF8C00', low: '#00C896' };
-  const urgencyLabel = { high: '🔴 HIGH', medium: '🟡 MEDIUM', low: '🟢 LOW' };
-
-  const leadsHTML = leads.length === 0
-    ? `<div style="text-align:center;padding:48px 24px;color:#888;font-size:14px">
-        No industrial leads found this cycle. Next scan in 3 days.
-       </div>`
-    : leads.map(lead => {
-        const sectorColor = SECTOR_COLOR[lead.sector] || '#888';
-        return `
-      <div style="background:white;border:1px solid #E8E8E0;border-radius:12px;padding:24px;margin-bottom:16px;border-left:4px solid ${urgencyColor[lead.urgency] || '#888'}">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:${urgencyColor[lead.urgency]}">${urgencyLabel[lead.urgency]}</span>
-            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:white;background:${sectorColor};padding:2px 8px;border-radius:4px">${lead.sector || 'Other'}</span>
-            <span style="font-size:10px;color:#aaa">${REGION_FLAG[lead.region]} ${lead.region}</span>
-          </div>
-          <span style="font-size:11px;color:#aaa">${lead.pubDate ? new Date(lead.pubDate).toLocaleDateString('en-GB') : ''}</span>
-        </div>
-
-        <div style="font-size:18px;font-weight:800;color:#0A0A0A;letter-spacing:-0.5px;margin-bottom:6px">${lead.company}</div>
-        <div style="font-size:13px;color:#333;margin-bottom:8px;line-height:1.5"><strong>Signal:</strong> ${lead.opportunity}</div>
-        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.5"><strong>Angle:</strong> ${lead.why_kajgod}</div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a href="${linkedInSearchURL(lead.linkedin_company, lead.linkedin_role)}"
-             style="display:inline-block;background:#0A66C2;color:white;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:700">
-            🔍 Find ${lead.linkedin_role} on LinkedIn
-          </a>
-          ${lead.link ? `<a href="${lead.link}" style="display:inline-block;background:#F5F5F0;color:#0A0A0A;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #E0E0D8">
-            Read source →
-          </a>` : ''}
-        </div>
-      </div>`;
-      }).join('');
+  const uColor = { high: '#FF3B5C', medium: '#FF8C00', low: '#00C896' };
+  const uLabel = { high: '🔴 HIGH', medium: '🟡 MEDIUM', low: '🟢 LOW' };
 
   const highCount   = leads.filter(l => l.urgency === 'high').length;
   const mediumCount = leads.filter(l => l.urgency === 'medium').length;
 
-  // Group by sector for summary
   const sectorCounts = {};
   leads.forEach(l => { sectorCounts[l.sector || 'Other'] = (sectorCounts[l.sector || 'Other'] || 0) + 1; });
-  const sectorSummary = Object.entries(sectorCounts)
-    .map(([s, n]) => `<span style="font-size:11px;background:${SECTOR_COLOR[s] || '#888'}20;color:${SECTOR_COLOR[s] || '#888'};border:1px solid ${SECTOR_COLOR[s] || '#888'}40;padding:3px 10px;border-radius:99px;font-weight:600">${s} ${n}</span>`)
+  const sectorBadges = Object.entries(sectorCounts)
+    .map(([s, n]) => `<span style="font-size:11px;background:${SECTOR_COLOR[s]||'#888'}20;color:${SECTOR_COLOR[s]||'#888'};border:1px solid ${SECTOR_COLOR[s]||'#888'}40;padding:3px 10px;border-radius:99px;font-weight:700">${s} · ${n}</span>`)
     .join(' ');
 
+  const leadsHTML = leads.length === 0
+    ? `<div style="text-align:center;padding:48px 24px;color:#888;font-size:14px">No industrial leads found this cycle. Next scan in 3 days.</div>`
+    : leads.map(lead => {
+        const sc = SECTOR_COLOR[lead.sector] || '#888';
+        return `
+        <div style="background:white;border:1px solid #E0E0E0;border-radius:12px;padding:22px;margin-bottom:14px;border-left:4px solid ${uColor[lead.urgency]||'#888'}">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:${uColor[lead.urgency]}">${uLabel[lead.urgency]}</span>
+            <span style="font-size:11px;font-weight:700;color:white;background:${sc};padding:2px 9px;border-radius:4px">${lead.sector||'Other'}</span>
+            <span style="font-size:10px;color:#aaa">${REGION_FLAG[lead.region]||''} ${lead.region}</span>
+            ${lead.pubDate ? `<span style="font-size:10px;color:#bbb;margin-left:auto">${new Date(lead.pubDate).toLocaleDateString('en-GB')}</span>` : ''}
+          </div>
+          <div style="font-size:20px;font-weight:800;color:#0A0A0A;letter-spacing:-0.5px;margin-bottom:8px">${lead.company}</div>
+          <div style="font-size:13px;color:#444;margin-bottom:8px;line-height:1.6"><span style="font-weight:700;color:#0A0A0A">Signal: </span>${lead.opportunity}</div>
+          <div style="font-size:13px;color:#1a56c4;margin-bottom:18px;line-height:1.6;background:#EEF4FF;padding:10px 14px;border-radius:8px;border-left:3px solid #1877F2"><span style="font-weight:700">💡 Angle: </span>${lead.why_kajgod}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="${linkedInSearchURL(lead.linkedin_company, lead.linkedin_role)}"
+               style="display:inline-flex;align-items:center;gap:6px;background:#0A66C2;color:white;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:700">
+              🔍 Find ${lead.linkedin_role}
+            </a>
+            ${lead.link ? `<a href="${lead.link}" style="display:inline-flex;align-items:center;gap:6px;background:#F5F5F2;color:#333;text-decoration:none;padding:9px 16px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #DDD">📰 Read article →</a>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 </head>
-<body style="margin:0;padding:0;background:#F5F5F0;font-family:-apple-system,BlinkMacSystemFont,'DM Sans',sans-serif">
-<div style="max-width:640px;margin:0 auto;padding:32px 16px">
+<body style="margin:0;padding:0;background:#EBEBEB;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif">
+<div style="max-width:620px;margin:0 auto;padding:28px 16px">
 
-  <!-- Header -->
-  <div style="background:#0A0A0A;border-radius:16px;padding:32px;margin-bottom:24px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;right:0;width:0;height:0;border-left:80px solid transparent;border-top:80px solid #FFE600"></div>
-    <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:white;letter-spacing:-1px;margin-bottom:4px">kajgod. <span style="color:#FFE600">Leads</span></div>
-    <div style="font-size:12px;color:#666;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px">Industrial & Tech Intelligence · ${now}</div>
-    <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap">
-      <div style="text-align:center">
-        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#FFE600">${leads.length}</div>
-        <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">Leads</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#FF3B5C">${highCount}</div>
-        <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">High</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#FF8C00">${mediumCount}</div>
-        <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">Medium</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#aaa">${fetchedCount}</div>
-        <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">Scanned</div>
+  <div style="background:#0A0A0A;border-radius:16px;overflow:hidden;margin-bottom:12px">
+    <div style="padding:28px 28px 0;position:relative">
+      <div style="position:absolute;top:0;right:0;width:0;height:0;border-left:120px solid transparent;border-top:120px solid #FFE600;opacity:0.9"></div>
+      <div style="position:relative;z-index:1">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:#555;margin-bottom:6px">Lead Intelligence</div>
+        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:white;letter-spacing:-1px;line-height:1.1;margin-bottom:4px">kajgod. <span style="color:#FFE600">Leads</span></div>
+        <div style="font-size:12px;color:#555;letter-spacing:0.5px;margin-bottom:20px">Industrial & Tech · ${now}</div>
       </div>
     </div>
-    ${leads.length > 0 ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${sectorSummary}</div>` : ''}
-  </div>
-
-  <!-- Leads -->
-  <div style="margin-bottom:24px">
-    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <div style="width:20px;height:2px;background:#FFE600"></div>
-      Opportunities This Cycle
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:0 12px">
+      ${[['#FFE600',leads.length,'Leads'],['#FF3B5C',highCount,'High'],['#FF8C00',mediumCount,'Medium'],['#777',fetchedCount,'Scanned']]
+        .map(([color,val,label]) => `
+        <div style="padding:16px 8px">
+          <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:${color};line-height:1">${val}</div>
+          <div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-top:3px">${label}</div>
+        </div>`).join('')}
     </div>
-    ${leadsHTML}
+    ${leads.length > 0 ? `<div style="padding:0 20px 20px;display:flex;gap:6px;flex-wrap:wrap">${sectorBadges}</div>` : '<div style="padding-bottom:20px"></div>'}
   </div>
 
-  <!-- Footer -->
-  <div style="text-align:center;padding:20px;font-size:11px;color:#aaa">
-    kajgod. Lead Intelligence · Industrial & Tech focus · HR 🇭🇷 SI 🇸🇮 AT 🇦🇹<br/>
-    Powered by Claude AI · Scans every 3 days
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#999;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+    <div style="width:16px;height:2px;background:#FFE600;border-radius:2px"></div>
+    Opportunities This Cycle
   </div>
 
+  ${leadsHTML}
+
+  <div style="text-align:center;padding:24px 0 8px;font-size:11px;color:#AAA;line-height:1.8">
+    kajgod. Lead Intelligence · Industrial & Tech · HR 🇭🇷 SI 🇸🇮 AT 🇦🇹<br/>
+    Scans every 3 days · Powered by Claude AI
+  </div>
 </div>
 </body>
 </html>`;
 }
 
-// ── SEND EMAIL ────────────────────────────────────────────────────────────
 async function sendEmail(html, leadCount) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: CONFIG.gmailUser, pass: CONFIG.gmailPass },
-  });
-
-  const subject = leadCount > 0
-    ? `⚙️ ${leadCount} industrial leads · kajgod. Intelligence`
-    : `📭 No leads this cycle · kajgod. Intelligence`;
-
-  await transporter.sendMail({
-    from: `"kajgod. Leads" <${CONFIG.gmailUser}>`,
-    to:   CONFIG.emailTo,
-    subject,
-    html,
-  });
-
+  const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: CONFIG.gmailUser, pass: CONFIG.gmailPass } });
+  const subject = leadCount > 0 ? `⚙️ ${leadCount} industrial leads · kajgod. Intelligence` : `📭 No leads this cycle · kajgod. Intelligence`;
+  await transporter.sendMail({ from: `"kajgod. Leads" <${CONFIG.gmailUser}>`, to: CONFIG.emailTo, subject, html });
   console.log(`✅ Email sent: "${subject}"`);
 }
 
-// ── MAIN ──────────────────────────────────────────────────────────────────
 async function main() {
   console.log('⚙️  kajgod. Industrial Lead Intelligence — starting scan…');
-
   if (!CONFIG.anthropicKey) { console.error('❌ Missing ANTHROPIC_API_KEY'); process.exit(1); }
   if (!CONFIG.gmailUser)    { console.error('❌ Missing GMAIL_USER');         process.exit(1); }
   if (!CONFIG.gmailPass)    { console.error('❌ Missing GMAIL_APP_PASSWORD'); process.exit(1); }
-
   console.log('📡 Fetching RSS feeds…');
   const items = await fetchAllFeeds();
   console.log(`   Found ${items.length} recent items`);
-
-  console.log('🧠 Analysing with Claude…');
+  console.log('🧠 Analysing with Claude Sonnet…');
   const leads = await analyzeWithClaude(items);
-  console.log(`   Identified ${leads.length} industrial leads`);
-
+  console.log(`   Identified ${leads.length} unique leads`);
   console.log('📧 Sending email digest…');
   const html = buildEmail(leads, items.length);
   await sendEmail(html, leads.length);
-
   console.log('✅ Done.');
 }
 
